@@ -1,34 +1,17 @@
 # fluey
-Fluey is an AI-powered communication and language learning platform focused on helping users improve speaking confidence through natural conversations.
-# Fluey
 
-Fluey is an AI\-powered communication platform designed to help users build confidence through real\-world conversations.
+A new Flutter project.
 
-The project aims to provide an accessible and affordable environment where learners can practice speaking, improve communication skills, and interact naturally with AI\-driven conversations without the complexity found in traditional language\-learning applications.
+## Getting Started
 
-## Vision
+This project is a starting point for a Flutter application.
 
-Many people understand English but struggle with speaking confidently. Fluey is being designed to bridge that gap by creating a conversational experience that feels natural, engaging, and easy to use.
+A few resources to get you started if this is your first Flutter project:
 
-## Planned Features
+- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
+- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
 
-- AI\-powered conversations
-- Real\-time voice interaction
-- Speaking confidence practice
-- Conversation history
-- Personalized learning experience
-- Progress tracking
-- Student and parent management portal
-- Administrative dashboard
-
-## Technology Stack
-
-- Flutter
-- Dart
-- REST APIs
-- AI Integration
-
-## Status
-
-🚧 Currently in design and development phase.
-
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.
