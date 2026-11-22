@@ -3,6 +3,7 @@ import 'package:fluey/reusable_component/button.dart';
 import 'package:fluey/reusable_component/custom_input_field.dart';
 import 'package:flutter/material.dart';
 import 'package:fluey/reusable_component/app_scaffold.dart';
+import 'package:fluey/view/dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -166,7 +167,34 @@ class _LoginScreenState extends State<LoginScreen> {
                       Button(
                         label: 'Authenticate Session →',
                         onTap: () {
-                          // Handle authentication
+                          Navigator.of(context).pushReplacement(
+                            PageRouteBuilder<void>(
+                              pageBuilder: (context, animation, secondaryAnimation) =>
+                                  const Dashboard(),
+                              transitionsBuilder:
+                                  (context, animation, secondaryAnimation, child) {
+                                final slideAnimation = Tween<Offset>(
+                                  begin: const Offset(0.04, 0),
+                                  end: Offset.zero,
+                                ).animate(
+                                  CurvedAnimation(
+                                    parent: animation,
+                                    curve: Curves.easeOutCubic,
+                                  ),
+                                );
+
+                                return FadeTransition(
+                                  opacity: animation,
+                                  child: SlideTransition(
+                                    position: slideAnimation,
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              transitionDuration:
+                                  const Duration(milliseconds: 450),
+                            ),
+                          );
                         },
                         horizontalMarginFactor: 0.04,
                         verticalMarginFactor: 0.0,

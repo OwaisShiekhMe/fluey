@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
-/// A themed button matching the Inventa Figma design.
-///
-/// Renders as a solid bright-blue pill button with white text — no gradients.
-/// Supports an optional outlined variant via [isOutlined].
 class Button extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
@@ -12,6 +8,10 @@ class Button extends StatelessWidget {
   final double verticalMarginFactor;
   final double height;
   final bool isOutlined;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+  final Color? borderColor;
+  final Widget? trailingIcon;
 
   const Button({
     super.key,
@@ -21,6 +21,10 @@ class Button extends StatelessWidget {
     this.verticalMarginFactor = 0.015,
     this.height = 0.06,
     this.isOutlined = false,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.borderColor,
+    this.trailingIcon,
   });
 
   @override
@@ -29,43 +33,68 @@ class Button extends StatelessWidget {
     final double screenHeight = MediaQuery.of(context).size.height;
     final textScaler = MediaQuery.of(context).textScaler;
 
+    final Color resolvedBg = backgroundColor ??
+        (isOutlined ? Colors.transparent : AppColors.accentBlue);
+    final Color resolvedFg = foregroundColor ??
+        (isOutlined ? AppColors.accentBlue : AppColors.white);
+    final bool showShadow =
+        !isOutlined && backgroundColor == null;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: isOutlined ? Colors.transparent : AppColors.accentBlue,
+          color: resolvedBg,
           borderRadius: BorderRadius.circular(
-            (screenHeight * 0.06).clamp(28.0, 40.0),
+            (screenHeight * 0.06).clamp(14.0, 40.0),
           ),
-          border: isOutlined
-              ? Border.all(color: AppColors.accentBlue, width: 1.5)
+          border: (isOutlined || borderColor != null)
+              ? Border.all(
+                  color: borderColor ?? AppColors.accentBlue,
+                  width: 1.2,
+                )
               : null,
-          boxShadow: isOutlined
-              ? null
-              : [
+          boxShadow: showShadow
+              ? [
                   BoxShadow(
                     color: AppColors.accentBlue.withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
-                ],
+                ]
+              : null,
         ),
         width: double.infinity,
         margin: EdgeInsets.only(
-          top: (screenHeight * verticalMarginFactor).clamp(8.0, 16.0),
+          top: (screenHeight * verticalMarginFactor).clamp(0.0, 16.0),
           left: screenWidth * horizontalMarginFactor,
           right: screenWidth * horizontalMarginFactor,
         ),
-        height: (screenHeight * height).clamp(44.0, 56.0),
+        height: (screenHeight * height).clamp(42.0, 56.0),
         alignment: Alignment.center,
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: textScaler.scale(16),
-            fontWeight: FontWeight.w600,
-            color: isOutlined ? AppColors.accentBlue : AppColors.white,
-            letterSpacing: 0.3,
-          ),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: textScaler.scale(14.5),
+                  fontWeight: FontWeight.w600,
+                  color: resolvedFg,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ),
+            if (trailingIcon != null) ...[
+              const SizedBox(width: 6),
+              trailingIcon!,
+            ],
+          ],
         ),
       ),
     );
