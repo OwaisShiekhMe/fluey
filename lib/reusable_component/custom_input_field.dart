@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'app_colors.dart';
 
 /// A themed text input field matching the Inventa Figma design.
@@ -14,6 +15,7 @@ class CustomInputField extends StatefulWidget {
   final TextInputType? keyboardType;
   final IconData? prefixIcon;
   final IconData? suffixIcon;
+  final VoidCallback? onSuffixTap;
   final double horizontalMarginFactor;
   final double verticalMarginFactor;
 
@@ -26,6 +28,7 @@ class CustomInputField extends StatefulWidget {
     this.keyboardType,
     this.prefixIcon,
     this.suffixIcon,
+    this.onSuffixTap,
     this.horizontalMarginFactor = 0.06,
     this.verticalMarginFactor = 0.012,
   });
@@ -82,10 +85,7 @@ class _CustomInputFieldState extends State<CustomInputField> {
             fontWeight: FontWeight.w500,
           ),
           hintText: widget.hint,
-          hintStyle: const TextStyle(
-            color: AppColors.textHint,
-            fontSize: 14,
-          ),
+          hintStyle: const TextStyle(color: AppColors.textHint, fontSize: 14),
           prefixIcon: widget.prefixIcon != null
               ? Icon(
                   widget.prefixIcon,
@@ -94,19 +94,20 @@ class _CustomInputFieldState extends State<CustomInputField> {
                 )
               : null,
           suffixIcon: widget.suffixIcon != null
-              ? Icon(
-                  widget.suffixIcon,
-                  color: focused ? AppColors.accentBlue : AppColors.textHint,
-                  size: 20,
+              ? IconButton(
+                  onPressed: widget.onSuffixTap,
+                  icon: Icon(
+                    widget.suffixIcon,
+                    color: focused ? AppColors.accentBlue : AppColors.textHint,
+                    size: 20,
+                  ),
                 )
               : null,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 14,
           ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: AppColors.border),

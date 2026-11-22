@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'app_colors.dart';
 
 class Button extends StatelessWidget {
@@ -12,6 +13,7 @@ class Button extends StatelessWidget {
   final Color? foregroundColor;
   final Color? borderColor;
   final Widget? trailingIcon;
+  final VoidCallback? onSuffixTap;
 
   const Button({
     super.key,
@@ -25,6 +27,7 @@ class Button extends StatelessWidget {
     this.foregroundColor,
     this.borderColor,
     this.trailingIcon,
+    this.onSuffixTap,
   });
 
   @override
@@ -33,12 +36,13 @@ class Button extends StatelessWidget {
     final double screenHeight = MediaQuery.of(context).size.height;
     final textScaler = MediaQuery.of(context).textScaler;
 
-    final Color resolvedBg = backgroundColor ??
+    final Color resolvedBg =
+        backgroundColor ??
         (isOutlined ? Colors.transparent : AppColors.accentBlue);
-    final Color resolvedFg = foregroundColor ??
+    final Color resolvedFg =
+        foregroundColor ??
         (isOutlined ? AppColors.accentBlue : AppColors.white);
-    final bool showShadow =
-        !isOutlined && backgroundColor == null;
+    final bool showShadow = !isOutlined && backgroundColor == null;
 
     return GestureDetector(
       onTap: onTap,
@@ -92,7 +96,11 @@ class Button extends StatelessWidget {
             ),
             if (trailingIcon != null) ...[
               const SizedBox(width: 6),
-              trailingIcon!,
+              GestureDetector(
+                onTap: onSuffixTap,
+                behavior: HitTestBehavior.opaque,
+                child: trailingIcon!,
+              ),
             ],
           ],
         ),

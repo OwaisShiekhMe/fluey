@@ -1,22 +1,25 @@
+import 'package:fluey/core/di/providers.dart';
 import 'package:fluey/reusable_component/app_colors.dart';
+import 'package:fluey/reusable_component/app_scaffold.dart';
 import 'package:fluey/reusable_component/button.dart';
 import 'package:fluey/reusable_component/custom_input_field.dart';
+import 'package:fluey/view_model/auth_notifier.dart';
 import 'package:flutter/material.dart';
-import 'package:fluey/reusable_component/app_scaffold.dart';
-import 'package:fluey/view/dashboard.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _emailController = TextEditingController(text: 'admin@fluey.ai');
-  final TextEditingController _passwordController = TextEditingController(text: '••••••••••••');
-  
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
   bool _trustDevice = true;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -25,11 +28,84 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter both work email and password.'),
+        ),
+      );
+      return;
+    }
+
+    FocusScope.of(context).unfocus();
+
+    final success = await ref.read(authProvider.notifier).login(
+          email: email,
+          password: password,
+          mode: 'super_admin',
+        );
+
+    if (!mounted) return;
+
+    if (success) {
+      final session = ref.read(authProvider).session;
+      final homeScreen = session?.roleStrategy.buildHomeScreen();
+
+      if (homeScreen != null) {
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder<void>(
+            pageBuilder: (context, animation, secondaryAnimation) => homeScreen,
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              final slideAnimation = Tween<Offset>(
+                begin: const Offset(0.04, 0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeOutCubic,
+                ),
+              );
+
+              return FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: slideAnimation,
+                  child: child,
+                ),
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 450),
+          ),
+        );
+      }
+    } else {
+      final errorMessage =
+          ref.read(authProvider).error ?? 'Authentication failed.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final deviceSize = MediaQuery.sizeOf(context);
     final deviceHeight = deviceSize.height;
     final deviceWidth = deviceSize.width;
+    final authState = ref.watch(authProvider);
+
+    ref.listen<AuthState>(authProvider, (previous, next) {
+      if (next.error != null && next.error != previous?.error && !next.isLoading) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error!)),
+        );
+      }
+    });
 
     return AppScaffold(
       body: SafeArea(
@@ -40,11 +116,11 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 20),
-                
+
                 // --- HEADER SECTION ---
-                Image(image: AssetImage('images/logo.png',),),
+                const Image(image: AssetImage('images/logo.png')),
                 const SizedBox(height: 16),
-                
+
                 const Text(
                   'Admin Console',
                   style: TextStyle(
@@ -54,7 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                
+
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 32.0),
                   child: Text(
@@ -97,23 +173,34 @@ class _LoginScreenState extends State<LoginScreen> {
                         horizontalMarginFactor: 0.04,
                         verticalMarginFactor: 0.008,
                       ),
-                      
+
                       SizedBox(height: deviceHeight * 0.012),
+
                       // Password Input Field
                       CustomInputField(
                         hint: 'Enter password',
                         label: 'Password',
                         controller: _passwordController,
-                        obscureText: true,
+                        obscureText: _obscurePassword,
                         prefixIcon: Icons.lock_outline,
-                        suffixIcon: Icons.visibility_off_outlined,
+                        suffixIcon: _obscurePassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        onSuffixTap: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
                         horizontalMarginFactor: 0.04,
                         verticalMarginFactor: 0.012,
                       ),
-                      
+
                       // Trust device checkbox & Forgot credentials row
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20.0,
+                          vertical: 8.0,
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -163,42 +250,22 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Authenticate Session Button
-                      Button(
-                        label: 'Authenticate Session →',
-                        onTap: () {
-                          Navigator.of(context).pushReplacement(
-                            PageRouteBuilder<void>(
-                              pageBuilder: (context, animation, secondaryAnimation) =>
-                                  const Dashboard(),
-                              transitionsBuilder:
-                                  (context, animation, secondaryAnimation, child) {
-                                final slideAnimation = Tween<Offset>(
-                                  begin: const Offset(0.04, 0),
-                                  end: Offset.zero,
-                                ).animate(
-                                  CurvedAnimation(
-                                    parent: animation,
-                                    curve: Curves.easeOutCubic,
-                                  ),
-                                );
-
-                                return FadeTransition(
-                                  opacity: animation,
-                                  child: SlideTransition(
-                                    position: slideAnimation,
-                                    child: child,
-                                  ),
-                                );
-                              },
-                              transitionDuration:
-                                  const Duration(milliseconds: 450),
+                      // Authenticate Session Button / Loading Indicator
+                      authState.isLoading
+                          ? const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  color: AppColors.accentBlue,
+                                ),
+                              ),
+                            )
+                          : Button(
+                              label: 'Authenticate Session →',
+                              onTap: _handleLogin,
+                              horizontalMarginFactor: 0.04,
+                              verticalMarginFactor: 0.0,
                             ),
-                          );
-                        },
-                        horizontalMarginFactor: 0.04,
-                        verticalMarginFactor: 0.0,
-                      ),
                     ],
                   ),
                 ),
@@ -217,7 +284,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -227,12 +294,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Text('•', style: TextStyle(color: AppColors.textHint)),
+                      child:
+                          Text('•', style: TextStyle(color: AppColors.textHint)),
                     ),
                     GestureDetector(
                       onTap: () {},
                       child: const Text(
-                        'Powered by Inventa',
+                        'Powered by Fluey',
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -243,15 +311,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                
+
                 Wrap(
                   alignment: WrapAlignment.center,
                   spacing: 12,
                   children: [
                     _buildFooterLink('Privacy'),
-                    const Text('•', style: TextStyle(color: AppColors.textHint, fontSize: 11)),
+                    const Text('•',
+                        style:
+                            TextStyle(color: AppColors.textHint, fontSize: 11)),
                     _buildFooterLink('Compliance'),
-                    const Text('•', style: TextStyle(color: AppColors.textHint, fontSize: 11)),
+                    const Text('•',
+                        style:
+                            TextStyle(color: AppColors.textHint, fontSize: 11)),
                     _buildFooterLink('System Telemetry'),
                   ],
                 ),

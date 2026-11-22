@@ -1,5 +1,7 @@
 // lib/core/auth/roles/super_admin_strategy.dart
 import 'package:flutter/material.dart';
+import 'package:fluey/view/home_screen.dart';
+
 import '../role_strategy.dart';
 import '../user_role.dart';
 
@@ -14,7 +16,7 @@ class SuperAdminStrategy implements RoleStrategy {
   String get defaultLoginMode => 'super_admin';
 
   @override
-  Widget buildHomeScreen() => const SuperAdminDashboardScreen();
+  Widget buildHomeScreen() => const HomeScreen();
 
   @override
   bool canManageCenters() => true;
@@ -76,17 +78,20 @@ class AdminStrategy implements RoleStrategy {
 class SuperAdminDashboardScreen extends StatelessWidget {
   const SuperAdminDashboardScreen({super.key});
   @override
-  Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('Super Admin Dashboard')));
+  Widget build(BuildContext context) =>
+      const Scaffold(body: Center(child: Text('Super Admin Dashboard')));
 }
 
 class CenterOwnerDashboardScreen extends StatelessWidget {
   const CenterOwnerDashboardScreen({super.key});
   @override
-  Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('Center Owner Dashboard')));
+  Widget build(BuildContext context) =>
+      const Scaffold(body: Center(child: Text('Center Owner Dashboard')));
 }
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
   @override
-  Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('Admin Dashboard')));
+  Widget build(BuildContext context) =>
+      const Scaffold(body: Center(child: Text('Admin Dashboard')));
 }
