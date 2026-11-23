@@ -31,7 +31,7 @@ class _DropdownfieldState extends State<Dropdownfield> {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.06),
       child: DropdownButtonFormField<String>(
-        value: widget.initialValue,
+        initialValue: widget.initialValue,
         icon: const Icon(
           Icons.keyboard_arrow_down_rounded,
           color: AppColors.textHint,

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
@@ -34,7 +36,7 @@ class Button extends StatelessWidget {
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double screenHeight = MediaQuery.of(context).size.height;
-    final textScaler = MediaQuery.of(context).textScaler;
+    final scaledFontSize = MediaQuery.textScalerOf(context).scale(14.5);
 
     final Color resolvedBg =
         backgroundColor ??
@@ -43,6 +45,9 @@ class Button extends StatelessWidget {
         foregroundColor ??
         (isOutlined ? AppColors.accentBlue : AppColors.white);
     final bool showShadow = !isOutlined && backgroundColor == null;
+    final buttonHeight = math
+        .max((screenHeight * height).clamp(42.0, 56.0), scaledFontSize + 24)
+        .toDouble();
 
     return GestureDetector(
       onTap: onTap,
@@ -74,7 +79,7 @@ class Button extends StatelessWidget {
           left: screenWidth * horizontalMarginFactor,
           right: screenWidth * horizontalMarginFactor,
         ),
-        height: (screenHeight * height).clamp(42.0, 56.0),
+        height: buttonHeight,
         alignment: Alignment.center,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Row(
@@ -87,7 +92,7 @@ class Button extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: textScaler.scale(14.5),
+                  fontSize: 14.5,
                   fontWeight: FontWeight.w600,
                   color: resolvedFg,
                   letterSpacing: 0.2,

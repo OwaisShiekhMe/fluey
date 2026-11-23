@@ -34,10 +34,7 @@ class StatCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: const Color(0xFFF1F3F6),
-              width: 1,
-            ),
+            border: Border.all(color: const Color(0xFFF1F3F6), width: 1),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.03),
@@ -61,11 +58,7 @@ class StatCard extends StatelessWidget {
                       color: badgeBackgroundColor,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(
-                      icon,
-                      color: accentColor,
-                      size: 20,
-                    ),
+                    child: Icon(icon, color: accentColor, size: 20),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(

@@ -15,7 +15,8 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _emailController =
+      TextEditingController(text: 'admin@fluey.ai');
   final TextEditingController _passwordController = TextEditingController();
 
   bool _trustDevice = true;
@@ -100,7 +101,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final authState = ref.watch(authProvider);
 
     ref.listen<AuthState>(authProvider, (previous, next) {
-      if (next.error != null && next.error != previous?.error && !next.isLoading) {
+      if (next.error != null &&
+          next.error != previous?.error &&
+          !next.isLoading) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(next.error!)),
         );
@@ -111,28 +114,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.symmetric(vertical: deviceHeight * 0.028),
+            padding: EdgeInsets.symmetric(vertical: deviceHeight * 0.024),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 20),
+                const SizedBox(height: 12),
 
-                // --- HEADER SECTION ---
-                const Image(image: AssetImage('images/logo.png')),
-                const SizedBox(height: 16),
+                // --- LOGO & HEADER ---
+                Image.asset(
+                  'images/logo.png',
+                  height: 76,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 14),
 
                 const Text(
                   'Admin Console',
                   style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 25,
+                    fontWeight: FontWeight.w800,
                     color: AppColors.textDark,
+                    letterSpacing: -0.4,
                   ),
                 ),
                 const SizedBox(height: 6),
 
                 const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 32.0),
+                  padding: EdgeInsets.symmetric(horizontal: 36.0),
                   child: Text(
                     'Manage enterprise conversations,\ntelemetry & live AI voice agents.',
                     textAlign: TextAlign.center,
@@ -143,19 +151,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 22),
 
-                // --- MAIN CARD CONTAINER ---
+                // --- LOGIN CARD ---
                 Container(
                   margin: EdgeInsets.symmetric(horizontal: deviceWidth * 0.05),
-                  padding: EdgeInsets.symmetric(vertical: deviceHeight * 0.028),
+                  padding: EdgeInsets.symmetric(vertical: deviceHeight * 0.026),
                   decoration: BoxDecoration(
                     color: AppColors.cardWhite,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(
+                      color: const Color(0xFFF1F3F6),
+                      width: 1,
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 16,
+                        color: Colors.black.withValues(alpha: 0.045),
+                        blurRadius: 18,
                         offset: const Offset(0, 6),
                       ),
                     ],
@@ -163,20 +175,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Work Email Input Field
                       CustomInputField(
                         hint: 'Enter work email',
                         label: 'Work Email',
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         prefixIcon: Icons.mail_outline,
-                        horizontalMarginFactor: 0.04,
+                        horizontalMarginFactor: 0.045,
                         verticalMarginFactor: 0.008,
                       ),
-
                       SizedBox(height: deviceHeight * 0.012),
 
-                      // Password Input Field
                       CustomInputField(
                         hint: 'Enter password',
                         label: 'Password',
@@ -187,54 +196,63 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ? Icons.visibility_off_outlined
                             : Icons.visibility_outlined,
                         onSuffixTap: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
+                          setState(() => _obscurePassword = !_obscurePassword);
                         },
-                        horizontalMarginFactor: 0.04,
+                        horizontalMarginFactor: 0.045,
                         verticalMarginFactor: 0.012,
                       ),
 
-                      // Trust device checkbox & Forgot credentials row
+                      // Trust device & Forgot credentials
                       Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20.0,
-                          vertical: 8.0,
+                          vertical: 10.0,
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: Checkbox(
-                                    value: _trustDevice,
-                                    activeColor: AppColors.accentBlue,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(4),
+                            GestureDetector(
+                              onTap: () =>
+                                  setState(() => _trustDevice = !_trustDevice),
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    height: 18,
+                                    width: 18,
+                                    child: Checkbox(
+                                      value: _trustDevice,
+                                      activeColor: AppColors.accentBlue,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      onChanged: (val) {
+                                        setState(() {
+                                          _trustDevice = val ?? true;
+                                        });
+                                      },
                                     ),
-                                    onChanged: (val) {
-                                      setState(() {
-                                        _trustDevice = val ?? true;
-                                      });
-                                    },
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'Trust device',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: AppColors.textDark,
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Trust device',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.textDark,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                             GestureDetector(
                               onTap: () {
-                                // Handle forgot credentials
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Contact your System Administrator to reset credentials.',
+                                    ),
+                                  ),
+                                );
                               },
                               child: const Text(
                                 'Forgot credentials?',
@@ -248,9 +266,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
 
-                      // Authenticate Session Button / Loading Indicator
+                      // Primary Action Button
                       authState.isLoading
                           ? const Padding(
                               padding: EdgeInsets.symmetric(vertical: 12),
@@ -263,23 +281,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           : Button(
                               label: 'Authenticate Session →',
                               onTap: _handleLogin,
-                              horizontalMarginFactor: 0.04,
+                              horizontalMarginFactor: 0.045,
                               verticalMarginFactor: 0.0,
                             ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 36),
 
-                // --- FOOTER SECURITY & INFO ---
+                // --- SECURITY & FOOTER ---
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: const [
-                    Icon(Icons.lock_outline, size: 14, color: AppColors.textHint),
+                    Icon(
+                      Icons.verified_user_outlined,
+                      size: 14,
+                      color: Color(0xFF005A8D),
+                    ),
                     SizedBox(width: 6),
                     Text(
                       '256-bit TLS Encrypted • SOC2 Type II Certified',
-                      style: TextStyle(fontSize: 11, color: AppColors.textHint),
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textHint,
+                      ),
                     ),
                   ],
                 ),
@@ -290,20 +316,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   children: [
                     const Text(
                       'Version 2.4.1 (Build 4820)',
-                      style: TextStyle(fontSize: 11, color: AppColors.textHint),
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF475467),
+                      ),
                     ),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
-                      child:
-                          Text('•', style: TextStyle(color: AppColors.textHint)),
+                      child: Text(
+                        '•',
+                        style: TextStyle(color: AppColors.textHint),
+                      ),
                     ),
                     GestureDetector(
                       onTap: () {},
                       child: const Text(
                         'Powered by Fluey',
                         style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
                           color: AppColors.accentBlue,
                         ),
                       ),
@@ -314,16 +346,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 Wrap(
                   alignment: WrapAlignment.center,
-                  spacing: 12,
+                  spacing: 10,
                   children: [
                     _buildFooterLink('Privacy'),
-                    const Text('•',
-                        style:
-                            TextStyle(color: AppColors.textHint, fontSize: 11)),
+                    const Text(
+                      '•',
+                      style: TextStyle(color: AppColors.textHint, fontSize: 11),
+                    ),
                     _buildFooterLink('Compliance'),
-                    const Text('•',
-                        style:
-                            TextStyle(color: AppColors.textHint, fontSize: 11)),
+                    const Text(
+                      '•',
+                      style: TextStyle(color: AppColors.textHint, fontSize: 11),
+                    ),
                     _buildFooterLink('System Telemetry'),
                   ],
                 ),
@@ -341,9 +375,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       child: Text(
         title,
         style: const TextStyle(
-          fontSize: 11,
+          fontSize: 11.5,
           color: AppColors.textHint,
-          decoration: TextDecoration.underline,
         ),
       ),
     );

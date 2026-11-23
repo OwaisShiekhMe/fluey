@@ -2,6 +2,7 @@ import 'package:fluey/reusable_component/app_scaffold.dart';
 import 'package:fluey/reusable_component/button.dart';
 import 'package:fluey/reusable_component/stat_card.dart';
 import 'package:fluey/model/enrollment_item.dart';
+import 'package:fluey/view/center_list.dart';
 import 'package:flutter/material.dart';
 
 class Dashboard extends StatefulWidget {
@@ -63,6 +64,31 @@ class _DashboardState extends State<Dashboard> {
   void _showSnack(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), duration: const Duration(seconds: 1)),
+    );
+  }
+
+  void _openCenterList() {
+    Navigator.of(context).push(
+      PageRouteBuilder<void>(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const CenterList(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final slideAnimation =
+              Tween<Offset>(
+                begin: const Offset(0.04, 0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+              );
+
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(position: slideAnimation, child: child),
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 450),
+        reverseTransitionDuration: const Duration(milliseconds: 350),
+      ),
     );
   }
 
@@ -409,7 +435,7 @@ class _DashboardState extends State<Dashboard> {
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
-        onTap: () => _showSnack('Select a center'),
+        onTap: _openCenterList,
         borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: const EdgeInsets.all(14),
