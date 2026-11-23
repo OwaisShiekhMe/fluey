@@ -16,6 +16,7 @@ class CustomInputField extends StatefulWidget {
   final IconData? prefixIcon;
   final IconData? suffixIcon;
   final VoidCallback? onSuffixTap;
+  final ValueChanged<String>? onChanged;
   final double horizontalMarginFactor;
   final double verticalMarginFactor;
 
@@ -29,6 +30,7 @@ class CustomInputField extends StatefulWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.onSuffixTap,
+    this.onChanged,
     this.horizontalMarginFactor = 0.06,
     this.verticalMarginFactor = 0.012,
   });
@@ -45,7 +47,9 @@ class _CustomInputFieldState extends State<CustomInputField> {
     super.initState();
     _focusNode = FocusNode();
     _focusNode.addListener(() {
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
   }
 
@@ -57,8 +61,8 @@ class _CustomInputFieldState extends State<CustomInputField> {
 
   @override
   Widget build(BuildContext context) {
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double screenHeight = MediaQuery.of(context).size.height;
+    final double screenWidth = MediaQuery.sizeOf(context).width;
+    final double screenHeight = MediaQuery.sizeOf(context).height;
     final bool focused = _focusNode.hasFocus;
 
     return Container(
@@ -72,13 +76,14 @@ class _CustomInputFieldState extends State<CustomInputField> {
         controller: widget.controller,
         obscureText: widget.obscureText,
         keyboardType: widget.keyboardType,
+        onChanged: widget.onChanged,
         style: const TextStyle(
           color: AppColors.textDark,
           fontSize: 15,
           fontWeight: FontWeight.w400,
         ),
         decoration: InputDecoration(
-          labelText: widget.label,
+          labelText: widget.label.isNotEmpty ? widget.label : null,
           labelStyle: TextStyle(
             color: focused ? AppColors.accentBlue : AppColors.textHint,
             fontSize: 14,

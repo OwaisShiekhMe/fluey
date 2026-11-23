@@ -2,6 +2,7 @@ import 'package:fluey/reusable_component/app_colors.dart';
 import 'package:fluey/reusable_component/app_scaffold.dart';
 import 'package:fluey/reusable_component/button.dart';
 import 'package:fluey/reusable_component/center_card.dart';
+import 'package:fluey/view/center_registration.dart';
 import 'package:flutter/material.dart';
 
 class CenterList extends StatefulWidget {
@@ -87,6 +88,31 @@ class _CenterListState extends State<CenterList> {
         .showSnackBar(SnackBar(content: Text(message)));
   }
 
+  void _openCenterRegistration() {
+    Navigator.of(context).push(
+      PageRouteBuilder<void>(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const CenterRegistration(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final slideAnimation =
+              Tween<Offset>(
+                begin: const Offset(0.04, 0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+              );
+
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(position: slideAnimation, child: child),
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 450),
+        reverseTransitionDuration: const Duration(milliseconds: 350),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final centers = _filteredCenters;
@@ -116,8 +142,7 @@ class _CenterListState extends State<CenterList> {
                         const SizedBox(height: 8),
                         Button(
                           label: 'Register New Center',
-                          onTap: () =>
-                              _showMessage('Register New Center tapped'),
+                          onTap: _openCenterRegistration,
                           horizontalMarginFactor: 0,
                           verticalMarginFactor: 0,
                           height: 0.055,
@@ -126,8 +151,7 @@ class _CenterListState extends State<CenterList> {
                             size: 16,
                             color: Colors.white,
                           ),
-                          onSuffixTap: () =>
-                              _showMessage('Register New Center tapped'),
+                          onSuffixTap: _openCenterRegistration,
                         ),
                         const SizedBox(height: 10),
                         if (centers.isEmpty)
