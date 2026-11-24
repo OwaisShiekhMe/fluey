@@ -16,6 +16,23 @@ class CenterRepository {
 
   CenterRepository({required this.apiClient});
 
+  Future<List<Center>> getActiveCenters() async {
+    final response = await apiClient.get(
+      '/centers',
+      withAuth: true,
+    );
+
+    final rawList = response['data'];
+    if (rawList is! List) {
+      return const <Center>[];
+    }
+
+    return rawList
+        .whereType<Map<String, dynamic>>()
+        .map(Center.fromJson)
+        .toList();
+  }
+
   Future<CenterRegisterResult> registerCenter({
     required String centerName,
     required String primaryContactName,
@@ -27,6 +44,7 @@ class CenterRepository {
     final normalizedCountryCode = countryCode.replaceAll(RegExp(r'\s+'), '');
     final normalizedMobile =
         mobileNumber.replaceAll(RegExp(r'[\s()-]'), '');
+    final trimmedAddress = address?.trim();
 
     final payload = <String, dynamic>{
       'centerName': centerName.trim(),
@@ -34,8 +52,8 @@ class CenterRepository {
       'countryCode': normalizedCountryCode,
       'mobileNumber': normalizedMobile,
       'email': email.trim(),
-      if (address != null && address.trim().isNotEmpty)
-        'address': address.trim(),
+      if (trimmedAddress != null && trimmedAddress.isNotEmpty)
+        'address': trimmedAddress,
     };
 
     final response = await apiClient.post(
@@ -44,13 +62,15 @@ class CenterRepository {
       withAuth: true,
     );
 
-    final rawData =
-        (response['data'] as Map<String, dynamic>?) ?? <String, dynamic>{};
+    final rawData = response['data'];
+    final centerJson = rawData is Map<String, dynamic>
+        ? rawData
+        : <String, dynamic>{};
 
     return CenterRegisterResult(
       message: (response['message'] ?? 'Center registered successfully')
           .toString(),
-      center: Center.fromJson(rawData),
+      center: Center.fromJson(centerJson),
     );
   }
 }

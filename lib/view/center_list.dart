@@ -1,79 +1,42 @@
+import 'package:fluey/core/di/providers.dart';
+import 'package:fluey/model/center.dart' as model;
 import 'package:fluey/reusable_component/app_colors.dart';
 import 'package:fluey/reusable_component/app_scaffold.dart';
 import 'package:fluey/reusable_component/button.dart';
 import 'package:fluey/reusable_component/center_card.dart';
 import 'package:fluey/view/center_registration.dart';
+import 'package:fluey/view_model/center_notifier.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CenterList extends StatefulWidget {
+class CenterList extends ConsumerStatefulWidget {
   const CenterList({super.key});
 
   @override
-  State<CenterList> createState() => _CenterListState();
+  ConsumerState<CenterList> createState() => _CenterListState();
 }
 
-class _CenterListState extends State<CenterList> {
+class _CenterListState extends ConsumerState<CenterList> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
-  static const List<_CenterInfo> _centers = [
-    _CenterInfo(
-      code: 'CTR-101',
-      name: 'Aptix Star Gate Campus',
-      address: 'Main Shahrah-e-Faisal, Karachi',
-      contactName: 'Tariq Mahmood',
-      contactPhone: '+92 300 9876543',
-      studentCount: 450,
-      facultyCount: 18,
-    ),
-    _CenterInfo(
-      code: 'CTR-102',
-      name: 'Beaconhouse Gulshan E',
-      address: 'Block 5, Gulshan-e-Iqbal, Karachi',
-      contactName: 'Amina Farooq',
-      contactPhone: '+92 321 4455667',
-      studentCount: 620,
-      facultyCount: 24,
-    ),
-    _CenterInfo(
-      code: 'CTR-103',
-      name: 'Roots Millennium Islamabad',
-      address: 'Sector F-8/3, Islamabad',
-      contactName: 'Kamran Qureshi',
-      contactPhone: '+92 333 5566778',
-      studentCount: 380,
-      facultyCount: 15,
-    ),
-    _CenterInfo(
-      code: 'CTR-104',
-      name: 'City School DHA',
-      address: 'Sector C, DHA Phase 5, Lahore',
-      contactName: 'Nadia Malik',
-      contactPhone: '+92 312 8899001',
-      studentCount: 120,
-      facultyCount: 8,
-      isActive: false,
-      statusText: 'Pending Review',
-    ),
-    _CenterInfo(
-      code: 'CTR-105',
-      name: 'The Educators Johar Town',
-      address: 'G-Block, Johar Town, Lahore',
-      contactName: 'Bilal Zubair',
-      contactPhone: '+92 301 7766554',
-      studentCount: 510,
-      facultyCount: 20,
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(centerProvider.notifier).fetchActiveCenters();
+    });
+  }
 
-  List<_CenterInfo> get _filteredCenters {
+  List<model.Center> _filterCenters(List<model.Center> centers) {
     final query = _searchQuery.trim().toLowerCase();
-    if (query.isEmpty) return _centers;
+    if (query.isEmpty) return centers;
 
-    return _centers.where((center) {
-      return center.name.toLowerCase().contains(query) ||
-          center.code.toLowerCase().contains(query) ||
-          center.address.toLowerCase().contains(query);
+    return centers.where((center) {
+      return center.centerName.toLowerCase().contains(query) ||
+          center.centerCode.toLowerCase().contains(query) ||
+          center.address.toLowerCase().contains(query) ||
+          center.primaryContactName.toLowerCase().contains(query);
     }).toList();
   }
 
@@ -88,19 +51,18 @@ class _CenterListState extends State<CenterList> {
         .showSnackBar(SnackBar(content: Text(message)));
   }
 
-  void _openCenterRegistration() {
-    Navigator.of(context).push(
-      PageRouteBuilder<void>(
+  Future<void> _openCenterRegistration() async {
+    final registeredCenter = await Navigator.of(context).push<model.Center?>(
+      PageRouteBuilder<model.Center?>(
         pageBuilder: (context, animation, secondaryAnimation) =>
             const CenterRegistration(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          final slideAnimation =
-              Tween<Offset>(
-                begin: const Offset(0.04, 0),
-                end: Offset.zero,
-              ).animate(
-                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-              );
+          final slideAnimation = Tween<Offset>(
+            begin: const Offset(0.04, 0),
+            end: Offset.zero,
+          ).animate(
+            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+          );
 
           return FadeTransition(
             opacity: animation,
@@ -111,11 +73,22 @@ class _CenterListState extends State<CenterList> {
         reverseTransitionDuration: const Duration(milliseconds: 350),
       ),
     );
+
+    if (!mounted) return;
+    if (registeredCenter != null) {
+      await ref.read(centerProvider.notifier).fetchActiveCenters();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final centers = _filteredCenters;
+    final centerState = ref.watch(centerProvider);
+    final allCenters = centerState.activeCenters;
+    final filteredCenters = _filterCenters(allCenters);
+
+    final totalCount = allCenters.length;
+    final activeCount = allCenters.where((c) => c.isActive).length;
+    final pendingCount = totalCount - activeCount;
 
     return AppScaffold(
       body: Column(
@@ -132,58 +105,42 @@ class _CenterListState extends State<CenterList> {
                 constraints: const BoxConstraints(maxWidth: 620),
                 child: SizedBox(
                   width: double.infinity,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
-                    child: Column(
-                      children: [
-                        _buildSearchField(),
-                        const SizedBox(height: 8),
-                        _buildSummary(),
-                        const SizedBox(height: 8),
-                        Button(
-                          label: 'Register New Center',
-                          onTap: _openCenterRegistration,
-                          horizontalMarginFactor: 0,
-                          verticalMarginFactor: 0,
-                          height: 0.055,
-                          trailingIcon: const Icon(
-                            Icons.add_circle_outline,
-                            size: 16,
-                            color: Colors.white,
+                  child: RefreshIndicator(
+                    color: AppColors.accentBlue,
+                    onRefresh: () =>
+                        ref.read(centerProvider.notifier).fetchActiveCenters(),
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+                      child: Column(
+                        children: [
+                          _buildSearchField(),
+                          const SizedBox(height: 8),
+                          _buildSummary(
+                            total: totalCount,
+                            active: activeCount,
+                            pending: pendingCount,
                           ),
-                          onSuffixTap: _openCenterRegistration,
-                        ),
-                        const SizedBox(height: 10),
-                        if (centers.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 32),
-                            child: Text(
-                              'No centers match your search.',
-                              style: TextStyle(color: AppColors.textHint),
+                          const SizedBox(height: 8),
+                          Button(
+                            label: 'Register New Center',
+                            onTap: _openCenterRegistration,
+                            horizontalMarginFactor: 0,
+                            verticalMarginFactor: 0,
+                            height: 0.055,
+                            trailingIcon: const Icon(
+                              Icons.add_circle_outline,
+                              size: 16,
+                              color: Colors.white,
                             ),
-                          )
-                        else
-                          ...centers.map(
-                            (center) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: CenterCard(
-                                code: center.code,
-                                name: center.name,
-                                statusText: center.statusText,
-                                address: center.address,
-                                contactName: center.contactName,
-                                contactPhone: center.contactPhone,
-                                studentCount: center.studentCount,
-                                facultyCount: center.facultyCount,
-                                isActive: center.isActive,
-                                onTap: () =>
-                                    _showMessage('Opened ${center.name}'),
-                              ),
-                            ),
+                            onSuffixTap: _openCenterRegistration,
                           ),
-                        const SizedBox(height: 10),
-                        const _Footer(),
-                      ],
+                          const SizedBox(height: 10),
+                          _buildCentersBody(centerState, filteredCenters),
+                          const SizedBox(height: 10),
+                          const _Footer(),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -192,6 +149,87 @@ class _CenterListState extends State<CenterList> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildCentersBody(
+    CenterState centerState,
+    List<model.Center> centers,
+  ) {
+    if (centerState.isFetchingCenters && centerState.activeCenters.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 36),
+        child: Center(
+          child: CircularProgressIndicator(color: AppColors.accentBlue),
+        ),
+      );
+    }
+
+    if (centerState.fetchError != null && centerState.activeCenters.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          children: [
+            Text(
+              centerState.fetchError!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xFF475467), fontSize: 13),
+            ),
+            const SizedBox(height: 10),
+            TextButton(
+              onPressed: () =>
+                  ref.read(centerProvider.notifier).fetchActiveCenters(),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (centers.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32),
+        child: Text(
+          _searchQuery.trim().isEmpty
+              ? 'No active centers found.'
+              : 'No centers match your search.',
+          style: const TextStyle(color: AppColors.textHint),
+        ),
+      );
+    }
+
+    return Column(
+      children: centers.map((center) {
+        final formattedPhone = center.mobileNumber.isNotEmpty
+            ? '${center.countryCode} ${center.mobileNumber}'
+            : 'Contact on file';
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: CenterCard(
+            code: center.centerCode,
+            name: center.centerName,
+            statusText: center.isActive ? 'Active' : 'Pending Review',
+            address: center.address.isNotEmpty
+                ? center.address
+                : 'Address not listed',
+            contactName: center.primaryContactName.isNotEmpty
+                ? center.primaryContactName
+                : 'Primary Admin',
+            contactPhone: formattedPhone,
+            studentCount: 0,
+            facultyCount: 0,
+            isActive: center.isActive,
+            onTap: () => _showMessage('Opened ${center.centerName}'),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -244,9 +282,10 @@ class _CenterListState extends State<CenterList> {
                 ),
               ),
               IconButton(
-                tooltip: 'Filter centers',
-                onPressed: () => _showMessage('Center filters'),
-                icon: const Icon(Icons.tune, size: 20),
+                tooltip: 'Refresh centers',
+                onPressed: () =>
+                    ref.read(centerProvider.notifier).fetchActiveCenters(),
+                icon: const Icon(Icons.refresh, size: 20),
                 visualDensity: VisualDensity.compact,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints.tightFor(
@@ -296,62 +335,42 @@ class _CenterListState extends State<CenterList> {
     );
   }
 
-  Widget _buildSummary() {
-    return const Row(
+  Widget _buildSummary({
+    required int total,
+    required int active,
+    required int pending,
+  }) {
+    return Row(
       children: [
         Expanded(
           child: _SummaryMetric(
             label: 'TOTAL',
-            value: '28',
+            value: '$total',
             detail: 'Hubs',
-            valueColor: Color(0xFF1749C5),
+            valueColor: const Color(0xFF1749C5),
           ),
         ),
-        SizedBox(width: 6),
+        const SizedBox(width: 6),
         Expanded(
           child: _SummaryMetric(
             label: 'ACTIVE',
-            value: '26',
+            value: '$active',
             detail: '•',
-            valueColor: Color(0xFF0085B8),
+            valueColor: const Color(0xFF0085B8),
           ),
         ),
-        SizedBox(width: 6),
+        const SizedBox(width: 6),
         Expanded(
           child: _SummaryMetric(
             label: 'PENDING',
-            value: '2',
+            value: '$pending',
             detail: 'Hold',
-            valueColor: Color(0xFF9A5200),
+            valueColor: const Color(0xFF9A5200),
           ),
         ),
       ],
     );
   }
-}
-
-class _CenterInfo {
-  final String code;
-  final String name;
-  final String address;
-  final String contactName;
-  final String contactPhone;
-  final int studentCount;
-  final int facultyCount;
-  final bool isActive;
-  final String statusText;
-
-  const _CenterInfo({
-    required this.code,
-    required this.name,
-    required this.address,
-    required this.contactName,
-    required this.contactPhone,
-    required this.studentCount,
-    required this.facultyCount,
-    this.isActive = true,
-    this.statusText = 'Active',
-  });
 }
 
 class _SummaryMetric extends StatelessWidget {
