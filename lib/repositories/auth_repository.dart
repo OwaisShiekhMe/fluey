@@ -32,7 +32,7 @@ class AuthRepository {
     String mode = 'super_admin',
   }) async {
     final data = await apiClient.post(
-      '/api/auth/login',
+      '/auth/login',
       withAuth: false,
       body: {
         'email': email.trim(),
@@ -63,7 +63,7 @@ class AuthRepository {
     if (token == null || token.isEmpty) return null;
 
     try {
-      final data = await apiClient.get('/api/auth/me', withAuth: true);
+      final data = await apiClient.get('/auth/me', withAuth: true);
       final user = (data['user'] as Map<String, dynamic>?) ?? <String, dynamic>{};
 
       return AuthSession(
